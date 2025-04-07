@@ -20,7 +20,7 @@ const SubscriptionPlans: React.FC = () => {
           {subscriptionPlans.map((plan) => (
             <Card 
               key={plan.id} 
-              className={`${
+              className={`subscription-plan-card ${
                 plan.popular ? 'border-fitness-primary shadow-lg relative' : ''
               } transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
             >
@@ -52,7 +52,7 @@ const SubscriptionPlans: React.FC = () => {
               </CardContent>
               <CardFooter>
                 <Button 
-                  className={`w-full ${
+                  className={`w-full subscription-plan-button ${
                     plan.popular 
                       ? 'bg-fitness-primary hover:bg-fitness-primary/90' 
                       : ''

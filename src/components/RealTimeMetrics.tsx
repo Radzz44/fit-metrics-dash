@@ -1,31 +1,73 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Activity, Eye, MousePointer, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-// Mock data for real-time metrics
-const generateRealtimeData = () => {
+// Initial data structure
+const generateInitialData = () => {
   const now = new Date();
   const data = [];
   for (let i = 10; i >= 0; i--) {
     const time = new Date(now.getTime() - i * 60000);
     data.push({
       time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      clicks: Math.floor(Math.random() * 15) + 5,
-      impressions: Math.floor(Math.random() * 100) + 50,
+      clicks: 0, // Start with 0 clicks
+      impressions: Math.floor(Math.random() * 100) + 50, // Keep random impressions
     });
   }
   return data;
 };
 
 const RealTimeMetrics: React.FC = () => {
-  const [realtimeData, setRealtimeData] = useState(generateRealtimeData());
+  const [realtimeData, setRealtimeData] = useState(generateInitialData());
   const [totalClicks, setTotalClicks] = useState(0);
   const [totalImpressions, setTotalImpressions] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentMinute, setCurrentMinute] = useState(new Date().getMinutes());
+
+  // Track clicks
+  const handleClick = useCallback(() => {
+    setRealtimeData(prevData => {
+      const newData = [...prevData];
+      const lastIndex = newData.length - 1;
+      
+      // Increment clicks for the last time period
+      newData[lastIndex] = {
+        ...newData[lastIndex],
+        clicks: newData[lastIndex].clicks + 1
+      };
+      
+      return newData;
+    });
+  }, []);
+
+  // Add click event listener
+  useEffect(() => {
+    // Track clicks on the website or subscription plans
+    const trackClicks = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      
+      // Check if click is on a subscription plan button
+      const isSubscriptionClick = target.closest('.subscription-plan-card') !== null || 
+                                target.textContent?.includes('Select Plan') ||
+                                target.textContent?.includes('Start Now');
+      
+      if (isSubscriptionClick) {
+        handleClick();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('click', trackClicks);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('click', trackClicks);
+    };
+  }, [handleClick]);
 
   // Calculate totals based on current data
   useEffect(() => {
@@ -36,27 +78,34 @@ const RealTimeMetrics: React.FC = () => {
     setTotalImpressions(impressions);
   }, [realtimeData]);
 
-  // Simulate real-time data updates
+  // Simulate real-time data updates - only advance time and impressions
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsRefreshing(true);
+      const now = new Date();
+      const newMinute = now.getMinutes();
       
-      setTimeout(() => {
-        const newData = [...realtimeData.slice(1)];
-        const lastTime = new Date();
-        newData.push({
-          time: lastTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          clicks: Math.floor(Math.random() * 15) + 5,
-          impressions: Math.floor(Math.random() * 100) + 50,
-        });
+      // Only update when minute changes
+      if (newMinute !== currentMinute) {
+        setIsRefreshing(true);
+        setCurrentMinute(newMinute);
         
-        setRealtimeData(newData);
-        setIsRefreshing(false);
-      }, 500);
+        setTimeout(() => {
+          setRealtimeData(prevData => {
+            const newData = [...prevData.slice(1)];
+            newData.push({
+              time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              clicks: 0, // Start with 0 clicks for new minute
+              impressions: Math.floor(Math.random() * 100) + 50,
+            });
+            return newData;
+          });
+          setIsRefreshing(false);
+        }, 500);
+      }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [realtimeData]);
+  }, [currentMinute]);
 
   return (
     <Card>
