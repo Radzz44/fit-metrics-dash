@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, DollarSign, Users, MousePointer, Target } from 'lucide-react';
 import { analyticsData } from '@/lib/mock-data';
+import RealTimeMetrics from './RealTimeMetrics';
 
 const AnalyticsDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState('weekly');
@@ -19,6 +20,11 @@ const AnalyticsDashboard: React.FC = () => {
           <p className="text-lg text-gray-600">
             Track your CPC (Cost Per Click) and CPR (Cost Per Result) metrics to optimize your fitness marketing campaigns
           </p>
+        </div>
+        
+        {/* Real-time metrics section */}
+        <div className="mb-12">
+          <RealTimeMetrics />
         </div>
         
         <Tabs defaultValue="overview" className="space-y-8">
